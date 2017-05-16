@@ -12,12 +12,25 @@ return [
     'bootstrap' => ['log'],
     'controllerNamespace' => 'frontend\controllers',
     'components' => [
+        'mailer' => [
+            'class' => 'yii\swiftmailer\Mailer',
+            'useFileTransport' => false,
+            'transport' => [
+                'class' => 'Swift_SmtpTransport',
+                'host' => 'smtp.gmail.com',
+                'username' => 'test.php.up@gmail.com',
+                'password' => '',
+                'port' => '587',
+                'encryption' => 'tls',
+            ],
+        ],
         'request' => [
             'csrfParam' => '_csrf-frontend',
         ],
         'user' => [
             'identityClass' => 'common\models\User',
             'enableAutoLogin' => true,
+//            'loginUrl' => ['user/mylogin'],
             'identityCookie' => ['name' => '_identity-frontend', 'httpOnly' => true],
         ],
         'session' => [
@@ -40,6 +53,7 @@ return [
             'enablePrettyUrl' => true,
             'showScriptName' => false,
             'rules' => [
+                'album-view/<id:\d+>' => 'album/view',
             ],
         ],
         'authClientCollection' => [

@@ -8,6 +8,7 @@ use yii\data\ActiveDataProvider;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
+use yii\filters\AccessControl;
 
 /**
  * AlbumController implements the CRUD actions for Album model.
@@ -20,6 +21,22 @@ class AlbumController extends Controller
     public function behaviors()
     {
         return [
+            'access' => [
+                'class' => AccessControl::className(),
+                'only' => ['index', 'update', 'create', 'delete', 'view'],
+                'rules' => [
+                    [
+                        'allow' => true,
+                        'actions' => ['index', 'update', 'create', 'delete', 'view'],
+                        'roles' => ['@'],
+                    ],
+                    [
+                        'allow' => true,
+                        'actions' => ['index', 'view'],
+                        'roles' => ['?'],
+                    ],
+                ],
+            ],
             'verbs' => [
                 'class' => VerbFilter::className(),
                 'actions' => [
@@ -35,8 +52,12 @@ class AlbumController extends Controller
      */
     public function actionIndex()
     {
+        $user = Yii::$app->user->identity;
+        
+        $query = Album::find()->visibleFor($user);
+        
         $dataProvider = new ActiveDataProvider([
-            'query' => Album::find(),
+            'query' => $query,
         ]);
 
         return $this->render('index', [
@@ -51,8 +72,15 @@ class AlbumController extends Controller
      */
     public function actionView($id)
     {
+        $model = $this->findModel($id);
+        
+        $currentUserId = Yii::$app->user->id;
+        if (!$model->canViewBy($currentUserId)) {
+            throw new NotFoundHttpException('Not found');
+        }
+        
         return $this->render('view', [
-            'model' => $this->findModel($id),
+            'model' => $model,
         ]);
     }
 
@@ -83,6 +111,11 @@ class AlbumController extends Controller
     public function actionUpdate($id)
     {
         $model = $this->findModel($id);
+
+        $currentUserId = Yii::$app->user->id;
+        if (!$model->canUpdateBy($currentUserId)) {
+            throw new NotFoundHttpException('Not found');
+        }
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             return $this->redirect(['view', 'id' => $model->id]);

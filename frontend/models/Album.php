@@ -79,4 +79,26 @@ class Album extends \yii\db\ActiveRecord
         $this->user_id = Yii::$app->user->id;
         return parent::beforeValidate();
     }
+    
+    /**
+     * @param integer $userId
+     * @return boolean
+     */
+    public function canUpdateBy($userId) 
+    {
+        return ($userId == $this->user_id);
+    }
+    
+    /**
+     * @param integer $userId
+     * @return boolean
+     */
+    public function canViewBy($userId) 
+    {
+        if ($userId !== null) {
+            return ($this->user_id == $userId || $this->access == self::ACCESS_ALL || $this->access == self::ACCESS_MEMBERS);
+        }
+        return ($this->access == self::ACCESS_ALL);
+    }
+    
 }

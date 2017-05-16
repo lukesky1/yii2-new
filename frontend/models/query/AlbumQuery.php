@@ -1,6 +1,8 @@
 <?php
 
 namespace frontend\models\query;
+use common\models\User;
+use frontend\models\Album;
 
 /**
  * This is the ActiveQuery class for [[\frontend\models\Album]].
@@ -9,26 +11,33 @@ namespace frontend\models\query;
  */
 class AlbumQuery extends \yii\db\ActiveQuery
 {
-    /*public function active()
-    {
-        return $this->andWhere('[[status]]=1');
-    }*/
 
-    /**
-     * @inheritdoc
-     * @return \frontend\models\Album[]|array
-     */
-    public function all($db = null)
+//    public function active()
+//    {
+//        return $this->andWhere('[[status]]=1');
+//    }
+    
+    public function visibleFor($user)
     {
-        return parent::all($db);
+        if ($user === null) {
+            return $this->visibleForAll();
+        } else {
+            return $this->visibleForUser($user);
+        }  
     }
+    
+    private function visibleForAll()
+    {
+        $condition = [
+            'access' => Album::ACCESS_ALL
+        ];
+        return $this->where($condition);
+    }
+    
+    private function visibleForUser(User $user)
+    {
+        return $this->where(['or',['access'=> Album::ACCESS_ALL],['access' => Album::ACCESS_MEMBERS], ['user_id' => $user->id]]);
+    }
+    
 
-    /**
-     * @inheritdoc
-     * @return \frontend\models\Album|array|null
-     */
-    public function one($db = null)
-    {
-        return parent::one($db);
-    }
 }
